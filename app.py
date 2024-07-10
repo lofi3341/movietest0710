@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from moviepy.editor import VideoFileClip
+from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
 
 def extract_audio(video_path):
     clip = VideoFileClip(video_path)
@@ -13,12 +13,31 @@ def remove_audio(video_path):
     clip = VideoFileClip(video_path)
     temp_video_no_audio_path = os.path.join('temp', 'video_no_audio.mp4')
     clip = clip.without_audio()
-    clip.write_videofile(temp_video_no_audio_path, codec='libx264', threads=4)  # threadsを追加してみる
+    clip.write_videofile(temp_video_no_audio_path, codec='libx264', threads=4)
     return temp_video_no_audio_path
 
+def convert_video(video_path):
+    # Extract audio
+    audio_path = extract_audio(video_path)
+
+    # Remove audio from video
+    video_no_audio_path = remove_audio(video_path)
+
+    # Load clips
+    audio_clip = AudioFileClip(audio_path)
+    video_clip = VideoFileClip(video_no_audio_path)
+
+    # Set audio to video
+    final_clip = video_clip.set_audio(audio_clip)
+
+    # Save final video
+    final_video_path = os.path.join('temp', 'final_video.mp4')
+    final_clip.write_videofile(final_video_path, codec='libx264', threads=4, audio_codec='aac')
+    return final_video_path
+
 def main():
-    st.title('Video Audio Extractor')
-    st.write('Upload a video file and extract or remove audio.')
+    st.title('Video Audio Converter')
+    st.write('Upload a video file and convert it by extracting audio and removing audio.')
 
     uploaded_file = st.file_uploader("Choose a video file", type=['mp4', 'mov', 'avi'])
 
@@ -31,22 +50,16 @@ def main():
             f.write(uploaded_file.read())
         st.success('Video successfully uploaded.')
 
-        if st.button('Extract Audio'):
-            st.write('Extracting audio...')
-            audio_path = extract_audio(video_path)
-            st.success('Audio extracted successfully!')
-            st.audio(audio_path, format='audio/wav')
+        if st.button('Convert'):
+            st.write('Converting video...')
+            final_video_path = convert_video(video_path)
+            st.success('Video converted successfully!')
 
-        if st.button('Remove Audio and Download Video'):
-            st.write('Removing audio...')
-            video_no_audio_path = remove_audio(video_path)
-            st.success('Audio removed successfully!')
-
-            with open(video_no_audio_path, 'rb') as file:
-                btn = st.download_button(
-                    label='Download Video without Audio',
+            with open(final_video_path, 'rb') as file:
+                st.download_button(
+                    label='Download Converted Video',
                     data=file,
-                    file_name='video_no_audio.mp4',
+                    file_name='final_video.mp4',
                     mime='video/mp4'
                 )
 
