@@ -2,9 +2,13 @@ import os
 import streamlit as st
 from moviepy.editor import VideoFileClip
 from moviepy.config import change_settings
+import logging
 
-# Specify the path to ffmpeg
-change_settings({"FFMPEG_BINARY": "ffmpeg"})  # or the full path to the ffmpeg binary
+# Enable logging for moviepy
+logging.basicConfig(level=logging.DEBUG)
+
+# Specify the full path to ffmpeg
+change_settings({"FFMPEG_BINARY": "ffmpeg"})  # Replace with the actual path to ffmpeg
 
 # Function to extract audio from video
 def extract_audio(video_path):
