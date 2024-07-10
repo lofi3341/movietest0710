@@ -1,35 +1,40 @@
 import os
+import pathlib
 import streamlit as st
 from moviepy.editor import VideoFileClip
-from moviepy.config import change_settings
-import logging
-
-# Enable logging for moviepy
-logging.basicConfig(level=logging.DEBUG)
-
-# Specify the full path to ffmpeg
-change_settings({"FFMPEG_BINARY": "ffmpeg"})  # Replace with the actual path to ffmpeg
 
 # Function to extract audio from video
 def extract_audio(video_path):
+    # Load the video clip
     clip = VideoFileClip(video_path)
+    
+    # Extract audio
     audio_clip = clip.audio
+    
+    # Save audio to a temporary file
     temp_audio_path = os.path.join('temp', 'extracted_audio.wav')
     audio_clip.write_audiofile(temp_audio_path)
+    
     return temp_audio_path
 
 # Function to remove audio from video
 def remove_audio(video_path):
+    # Load the video clip
     clip = VideoFileClip(video_path)
-    video_no_audio = clip.without_audio()
+    
+    # Remove audio
+    clip = clip.without_audio()
+    
+    # Save video without audio to a temporary file
     temp_video_no_audio_path = os.path.join('temp', 'video_no_audio.mp4')
-    video_no_audio.write_videofile(temp_video_no_audio_path)
+    clip.write_videofile(temp_video_no_audio_path, codec='libx264')
+    
     return temp_video_no_audio_path
 
 # Main function for Streamlit app
 def main():
-    st.title('Video Audio Extractor and Remover')
-    st.write('Upload a video file to extract audio or remove audio')
+    st.title('Video Audio Extractor')
+    st.write('Upload a video file and extract audio or remove audio')
 
     uploaded_file = st.file_uploader("Choose a video file", type=['mp4', 'mov', 'avi'])
 
@@ -47,21 +52,21 @@ def main():
             audio_path = extract_audio(video_path)
             st.success('Audio extracted successfully!')
             st.audio(audio_path, format='audio/wav')
-            st.write('Extracted Audio')  # Add caption here
+            st.write('Extracted Audio')
 
-        if st.button('Remove Audio'):
+        if st.button('Remove Audio and Download Video'):
             st.write('Removing audio...')
             video_no_audio_path = remove_audio(video_path)
             st.success('Audio removed successfully!')
-            st.video(video_no_audio_path)
-            with open(video_no_audio_path, 'rb') as f:
-                st.download_button(
-                    label="Download video without audio",
-                    data=f,
+
+            with open(video_no_audio_path, 'rb') as file:
+                btn = st.download_button(
+                    label='Download Video without Audio',
+                    data=file,
                     file_name='video_no_audio.mp4',
                     mime='video/mp4'
                 )
-            st.write('Video without audio')  # Add caption here
+                st.write('Video without audio ready for download')
 
     # Clean up temporary directory
     if os.path.exists(temp_dir):
