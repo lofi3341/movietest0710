@@ -1,5 +1,4 @@
 import os
-import pathlib
 import streamlit as st
 from moviepy.editor import VideoFileClip
 
