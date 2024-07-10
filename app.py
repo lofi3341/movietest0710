@@ -32,7 +32,7 @@ def convert_video(video_path):
 
     # Save final video
     final_video_path = os.path.join('temp', 'final_video.mp4')
-    final_clip.write_videofile(final_video_path, codec='libx264', threads=4, audio_codec='aac')
+    final_clip.write_videofile(final_video_path, codec='libx264', audio_codec='aac', threads=4)
     return final_video_path
 
 def main():
